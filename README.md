@@ -1,1 +1,185 @@
 # django_example
+
+Install Django
+
+pip install django
+
+Check version:
+
+django-admin --version
+
+
+django-admin startproject myproject
+
+
+myproject/
+│── manage.py
+│── myproject/
+    │── __init__.py
+    │── settings.py
+    │── urls.py
+    │── asgi.py
+    │── wsgi.py
+
+
+📖 What are these files?
+
+manage.py → command-line utility (run server, migrate DB, etc.)
+
+settings.py → all project settings (DB, apps, middleware)
+
+urls.py → URL routing for project
+
+wsgi.py/asgi.py → entry points for deployment
+
+
+
+🔹 3. Run the Development Server
+
+cd myproject
+python manage.py runserver
+
+
+
+4. Create an App
+Django projects are made of apps (modular components).
+
+python manage.py startapp students
+
+students/
+│── admin.py
+│── apps.py
+│── models.py
+│── tests.py
+│── views.py
+│── migrations/
+
+
+models.py → Database tables (ORM classes)
+
+views.py → Logic for handling requests
+
+urls.py (we add manually) → App-level routes
+
+admin.py → Register models in Django admin
+
+migrations/ → Auto-generated database schema changes
+
+
+
+5. Add App to Settings
+
+   In myproject/settings.py, add:
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    ...
+    'students',  # our new app
+]
+
+
+6. Create a Model
+
+
+from django.db import models
+
+class Student(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    course = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+7. Migrations
+Detect model changes → create migration file:
+
+python manage.py makemigrations
+
+
+Apply migration → create table in DB:
+
+python manage.py migrate
+
+
+8. Admin Panel
+
+Create admin user:
+python manage.py createsuperuser
+
+
+Register model in students/admin.py:
+
+from django.contrib import admin
+from .models import Student
+
+admin.site.register(Student)
+
+
+
+Run server & login:
+👉 http://127.0.0.1:8000/admin
+
+
+9. Views & URLs
+In students/views.py:
+
+from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("Welcome to Student App")
+
+
+
+Create students/urls.py:
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.home, name='home'),
+]
+
+
+
+
+Include it in myproject/urls.py:
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('students/', include('students.urls')),
+]
+
+
+
+Now visit: http://127.0.0.1:8000/students/
+
+
+
+10. Templates & Forms
+
+Create templates/students/home.html:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Home</title>
+</head>
+<body>
+    <h1>Hello {{ name }}!</h1>
+</body>
+</html>
+
+
+Update view:
+
+from django.shortcuts import render
+
+def home(request):
+    return render(request, 'students/home.html', {'name': 'Hareesh'})
+
+
+
