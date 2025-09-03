@@ -1,0 +1,152 @@
+🔹 Step 1: Create Django App
+
+Inside your project:
+
+python manage.py startapp students
+
+
+Add "students" in INSTALLED_APPS in settings.py.
+
+🔹 Step 2: Define Model
+
+students/models.py
+
+from django.db import models
+
+class Student(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    course = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
+Run migrations:
+
+python manage.py makemigrations
+python manage.py migrate
+
+🔹 Step 3: Create Form
+
+students/forms.py
+
+from django import forms
+from .models import Student
+
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['name', 'email', 'course']
+
+🔹 Step 4: Create Views for CRUD
+
+students/views.py
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Student
+from .forms import StudentForm
+
+# CREATE + READ
+def student_list(request):
+    students = Student.objects.all()
+    return render(request, 'students/student_list.html', {'students': students})
+
+def student_create(request):
+    form = StudentForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return redirect('student_list')
+    return render(request, 'students/student_form.html', {'form': form})
+
+# UPDATE
+def student_update(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    form = StudentForm(request.POST or None, instance=student)
+    if form.is_valid():
+        form.save()
+        return redirect('student_list')
+    return render(request, 'students/student_form.html', {'form': form})
+
+# DELETE
+def student_delete(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    if request.method == 'POST':
+        student.delete()
+        return redirect('student_list')
+    return render(request, 'students/student_confirm_delete.html', {'student': student})
+
+🔹 Step 5: Configure URLs
+
+students/urls.py
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.student_list, name='student_list'),
+    path('create/', views.student_create, name='student_create'),
+    path('update/<int:pk>/', views.student_update, name='student_update'),
+    path('delete/<int:pk>/', views.student_delete, name='student_delete'),
+]
+
+
+Include it in project urls.py:
+
+from django.urls import path, include
+
+urlpatterns = [
+    path('students/', include('students.urls')),
+]
+
+🔹 Step 6: Create Templates
+
+Inside students/templates/students/ create:
+
+student_list.html
+<h2>Student List</h2>
+<a href="{% url 'student_create' %}">Add Student</a>
+<ul>
+  {% for student in students %}
+    <li>
+      {{ student.name }} - {{ student.course }} 
+      (<a href="{% url 'student_update' student.id %}">Edit</a> |
+       <a href="{% url 'student_delete' student.id %}">Delete</a>)
+    </li>
+  {% endfor %}
+</ul>
+
+student_form.html
+<h2>Student Form</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>
+<a href="{% url 'student_list' %}">Back</a>
+
+student_confirm_delete.html
+<h2>Delete Student</h2>
+<p>Are you sure you want to delete "{{ student.name }}"?</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Yes, delete</button>
+</form>
+<a href="{% url 'student_list' %}">Cancel</a>
+
+🔹 Step 7: Run the App
+
+Start server:
+
+python manage.py runserver
+
+
+Visit:
+
+http://127.0.0.1:8000/students/ → List students
+
+http://127.0.0.1:8000/students/create/ → Add student
+
+http://127.0.0.1:8000/students/update/1/ → Edit student with ID 1
+
+http://127.0.0.1:8000/students/delete/1/ → Delete student
