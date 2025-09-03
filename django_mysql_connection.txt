@@ -1,0 +1,79 @@
+🔹 Step 1: Install MySQL Client
+
+On your system, install the required Python library:
+
+pip install mysqlclient
+
+
+👉 If mysqlclient fails on macOS/Windows, you can use:
+
+pip install PyMySQL
+
+
+(but mysqlclient is faster and recommended).
+
+
+🔹 Step 2: Create a MySQL Database
+
+Login to MySQL:
+
+mysql -u root -p
+
+
+Then create a database:
+
+CREATE DATABASE studentdb;
+CREATE USER 'django_user'@'localhost' IDENTIFIED BY 'StrongPassword123';
+GRANT ALL PRIVILEGES ON studentdb.* TO 'django_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+
+🔹 Step 3: Configure Django Settings
+
+In myproject/settings.py, update DATABASES section:
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',   # use mysql backend
+        'NAME': 'studentdb',                   # database name
+        'USER': 'django_user',                 # db username
+        'PASSWORD': 'StrongPassword123',       # db password
+        'HOST': 'localhost',                   # or IP address
+        'PORT': '3306',                        # default MySQL port
+    }
+}
+
+
+
+🔹 Step 4: Apply Migrations
+
+Run:
+
+python manage.py makemigrations
+python manage.py migrate
+
+
+This will create Django system tables (auth, admin, sessions) inside MySQL.
+
+🔹 Step 5: Create Superuser
+python manage.py createsuperuser
+
+
+Now you can log in at:
+👉 http://127.0.0.1:8000/admin
+
+🔹 Step 6: Verify Connection
+
+Run the server:
+
+python manage.py runserver
+
+
+Check in MySQL:
+
+USE studentdb;
+SHOW TABLES;
+
+
+You should see tables like auth_user, django_admin_log, etc.
